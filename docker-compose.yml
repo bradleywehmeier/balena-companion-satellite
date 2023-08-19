@@ -1,0 +1,6 @@
+version: '2'
+services:
+  companion-satellite:
+    build: ./
+    privileged: true
+    network_mode: host

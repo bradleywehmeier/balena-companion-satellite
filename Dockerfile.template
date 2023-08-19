@@ -1,0 +1,43 @@
+################################ Build Base ################################
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:18-bookworm-build AS buildbase
+WORKDIR /usr/src/app
+RUN install_packages \
+     cmake yasm \
+     libudev-dev \
+     libgusb-dev
+
+################################ Prod Base #################################
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:18-bookworm-run AS prodbase
+WORKDIR /usr/src/app
+RUN install_packages \
+     libudev1 \
+     libgusb2 \
+     libfontconfig1 \
+     fonts-dejavu-core
+
+################################ App Build #################################
+FROM buildbase AS appbuild
+RUN git clone --depth 1 --branch v1.5.0 https://github.com/bitfocus/companion-satellite.git ./
+# Temporary hack since Balena only has Node 18.14 but package.json is requesting >=18.15
+RUN sed -i -e 's/"node": "^18.15"/"node": "^18.14"/g' package.json
+RUN yarn install
+RUN yarn build
+
+############################ Prod dependencies #############################
+FROM buildbase AS prodDependencies
+COPY --from=appbuild /usr/src/app/package.json /usr/src/app/yarn.lock ./
+RUN yarn install --production=true
+
+############################ Main Runtime Image ############################
+FROM prodbase
+
+COPY --from=prodDependencies /usr/src/app/node_modules ./node_modules
+COPY --from=appbuild /usr/src/app/package.json /usr/src/app/yarn.lock ./
+COPY --from=appbuild /usr/src/app/assets ./assets
+COPY --from=appbuild /usr/src/app/dist ./dist
+ADD ./entrypoint.sh /entrypoint.sh
+
+ENV UDEV=1
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["companion-satellite"]
