@@ -1,5 +1,5 @@
 ################################ Build Base ################################
-FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:18-bookworm-build AS buildbase
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:16-bookworm-build AS buildbase
 WORKDIR /usr/src/app
 RUN install_packages \
      cmake yasm \
@@ -7,7 +7,7 @@ RUN install_packages \
      libgusb-dev
 
 ################################ Prod Base #################################
-FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:18-bookworm-run AS prodbase
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:16-bookworm-run AS prodbase
 WORKDIR /usr/src/app
 RUN install_packages \
      libudev1 \
@@ -17,9 +17,7 @@ RUN install_packages \
 
 ################################ App Build #################################
 FROM buildbase AS appbuild
-RUN git clone --depth 1 --branch v1.5.0 https://github.com/bitfocus/companion-satellite.git ./
-# Temporary hack since Balena only has Node 18.14 but package.json is requesting >=18.15
-RUN sed -i -e 's/"node": "^18.15"/"node": "^18.14"/g' package.json
+RUN git clone --depth 1 --branch v1.4.1 https://github.com/bitfocus/companion-satellite.git ./
 RUN yarn install
 RUN yarn build
 
