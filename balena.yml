@@ -6,12 +6,12 @@ assets:
   repository:
     type: blob.asset
     data:
-      url: 'https://github.com/bradleywehmeier/companion-satellite'
+      url: 'https://github.com/bradleywehmeier/balena-companion-satellite'
   logo:
     type: blob.asset
     data:
       url: >-
-        https://raw.githubusercontent.com/bradleywehmeier/companion-satellite/master/assets/icon.png
+        https://raw.githubusercontent.com/bradleywehmeier/balena-companion-satellite/master/assets/icon.png
 data:
   applicationEnvironmentVariables:
     - COMPANION_IP: 0.0.0.0
